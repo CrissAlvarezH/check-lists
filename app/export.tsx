@@ -1,6 +1,7 @@
-import LeftList, { ListItem } from "@/app/left-list"
+import LeftList from "@/app/left-list"
 import { useState, createContext } from "react"
 import RightList from "./right-list"
+import { ListItem } from "./hooks"
 
 export type RichedItem = ListItem & {
   selected: boolean
@@ -8,15 +9,15 @@ export type RichedItem = ListItem & {
 
 export const ExportContext = createContext<{
   mode: "inclusive" | "exclusive"
-  selectedItems: RichedItem[]
-  unselectedItems: RichedItem[]
+  include: RichedItem[]
+  exclude: RichedItem[]
   handleAllSelectedChange: (all: boolean) => void
   handleSelect: (item: RichedItem) => void
   handleUnselect: (item: RichedItem) => void
 }>({
   mode: "inclusive",
-  selectedItems: [],
-  unselectedItems: [],
+  include: [],
+  exclude: [],
   handleAllSelectedChange: () => { },
   handleSelect: () => { },
   handleUnselect: () => { },
@@ -24,34 +25,40 @@ export const ExportContext = createContext<{
 
 export function Export() {
   const [mode, setMode] = useState<"inclusive" | "exclusive">("inclusive")
-  const [selectedItems, setSelectedItems] = useState<RichedItem[]>([])
-  const [unselectedItems, setUnselectedItems] = useState<RichedItem[]>([])
+  const [include, setInclude] = useState<RichedItem[]>([])
+  const [exclude, setExclude] = useState<RichedItem[]>([])
 
   const handleAllSelectedChange = (all: boolean) => {
     setMode(all ? "exclusive" : "inclusive")
-    setSelectedItems([])
-    setUnselectedItems([])
+    setInclude([])
+    setExclude([])
   }
 
   const handleSelect = (item: RichedItem) => {
     if (mode === "inclusive") {
-      setSelectedItems([...selectedItems, item])
+      setInclude([...include, item])
     } else {
-      setUnselectedItems([...unselectedItems, item])
+      setExclude(exclude.filter(i => i.id !== item.id))
     }
   }
 
-  // TODO: fix on remove, it is not working
   const handleUnselect = (item: RichedItem) => {
     if (mode === "inclusive") {
-      setSelectedItems(selectedItems.filter(i => i.id !== item.id))
+      setInclude(include.filter(i => i.id !== item.id))
     } else {
-      setUnselectedItems(unselectedItems.filter(i => i.id !== item.id))
+      setExclude([...exclude, item])
     }
   }
 
   return (
-    <ExportContext.Provider value={{ mode, handleAllSelectedChange, handleSelect, handleUnselect, selectedItems, unselectedItems }}>
+    <ExportContext.Provider value={{
+      mode,
+      handleAllSelectedChange,
+      handleSelect,
+      handleUnselect,
+      include,
+      exclude
+    }}>
       <div className="flex gap-4 p-4">
         <LeftList />
 

@@ -35,22 +35,11 @@ export default function LeftList() {
   )
 }
 
-type ListProps = {
-  allSelected: boolean
-}
-
-export type ListItem = {
-  id: string
-  text: string
-  label: string
-}
-
-
 function ListScroller() {
   const [allData, setAllData] = useState<RichedItem[]>([])
   const { error, data, hasNextPage, fetchNextPage } = useGetColumns()
 
-  const { mode, unselectedItems, selectedItems, handleSelect, handleUnselect } = useContext(ExportContext)
+  const { mode, exclude, include, handleSelect, handleUnselect } = useContext(ExportContext)
 
   useEffect(() => {
     // each time a new page is added, it transform the items and add it to allData
@@ -84,9 +73,9 @@ function ListScroller() {
         {allData.map((item: RichedItem) => {
           let isSelected = undefined
           if (mode === "exclusive") {
-            isSelected = !unselectedItems.some(i => i.id === item.id)
+            isSelected = !exclude.some(i => i.id === item.id)
           } else {
-            isSelected = selectedItems.some(i => i.id === item.id)
+            isSelected = include.some(i => i.id === item.id)
           }
 
           return (

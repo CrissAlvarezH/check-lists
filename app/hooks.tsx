@@ -1,5 +1,11 @@
 import { useInfiniteQuery } from "react-query"
-import { ListItem } from "./left-list"
+
+
+export type ListItem = {
+  id: string
+  text: string
+  label: string
+}
 
 export type Data = {
   items: ListItem[]

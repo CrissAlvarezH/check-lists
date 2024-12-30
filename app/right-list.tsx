@@ -1,23 +1,22 @@
 "use client"
-import { ListItem } from "@/app/left-list"
 import { useState, useEffect, useContext } from "react"
 import { HamburgerIcon } from "./icons"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { ExportContext, RichedItem } from "./export"
-import { useGetColumns } from "./hooks"
+import { useGetColumns, ListItem } from "./hooks"
 
 
 export default function RightList() {
-  const { mode, selectedItems, unselectedItems, handleUnselect } = useContext(ExportContext)
+  const { mode, include, exclude, handleUnselect } = useContext(ExportContext)
 
   return (
     <div className="flex-1 border rounded-lg p-4">
       <div className="space-y-2">
 
         {mode === "exclusive" ? (
-          <ListInfiniteScroll unselectedItems={unselectedItems} onRemove={handleUnselect} />
+          <ListInfiniteScroll exclude={exclude} onRemove={handleUnselect} />
         ) : (
-          selectedItems.map((item) => (
+          include.map((item) => (
             <SelectedColumnItem key={item.id} item={item} onRemove={handleUnselect} />
           )))}
       </div>
@@ -25,7 +24,7 @@ export default function RightList() {
   )
 }
 
-function ListInfiniteScroll({ unselectedItems, onRemove }: { unselectedItems: RichedItem[], onRemove: (item: RichedItem) => void }) {
+function ListInfiniteScroll({ exclude, onRemove }: { exclude: RichedItem[], onRemove: (item: RichedItem) => void }) {
   const [allData, setAllData] = useState<RichedItem[]>([])
   const [filteredData, setFilteredData] = useState<RichedItem[]>([])
 
@@ -38,12 +37,12 @@ function ListInfiniteScroll({ unselectedItems, onRemove }: { unselectedItems: Ri
   }, [data])
 
   useEffect(() => {
-    if (unselectedItems.length > 0) {
-      setFilteredData(allData.filter(i => !unselectedItems.some(ui => ui.id === i.id)))
+    if (exclude.length > 0) {
+      setFilteredData(allData.filter(i => !exclude.some(ui => ui.id === i.id)))
     } else {
       setFilteredData(allData)
     }
-  }, [unselectedItems, allData])
+  }, [exclude, allData])
 
   useEffect(() => {
     // if the container is not scrollable, fetch more data to make it scrollable
