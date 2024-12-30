@@ -4,6 +4,7 @@ import { useQuery } from "react-query"
 import { useEffect, useState } from "react"
 import { Search } from "./search"
 import { RichedItem } from "./export"
+import { useGetColumns } from "./hooks"
 
 type Props = {
   onAllSelectedChange: (all: boolean) => void
@@ -59,36 +60,17 @@ export type ListItem = {
   label: string
 }
 
-type Data = {
-  items: ListItem[]
-  page: number
-  totalPages: number
-}
 
-function ListScroller({ allSelected, onAllSelectedChange, onSelect, onUnselect, selectedItems, unselectedItems }: ListProps & Props) {
+function ListScroller({ allSelected, onSelect, onUnselect, selectedItems, unselectedItems }: ListProps & Props) {
   const [allData, setAllData] = useState<RichedItem[]>([])
-  const [page, setPage] = useState(1)
-
-  const fetchProjects = (page = 0) => fetch('/api/items?page=' + page, { method: 'GET' }).then((res) => res.json())
-
-  const {
-    error,
-    data,
-    isPreviousData,
-  } = useQuery(['items', page], () => fetchProjects(page), { keepPreviousData: true })
+  const { error, data, hasNextPage, fetchNextPage } = useGetColumns()
 
   useEffect(() => {
+    // each time a new page is added, it transform the items and add it to allData
     if (data) {
-      console.log("last page", page, "data.page", data.page)
-      if (!isPreviousData) {
-        const newItems: RichedItem[] = data.items.map((i: ListItem) => ({
-          ...i,
-          selected: allSelected
-        }))
-        setAllData([...allData, ...newItems])
-      }
+      setAllData(data.pages.flatMap(page => page.items).map((i: ListItem) => ({ ...i, selected: false })))
     }
-  }, [data, isPreviousData])
+  }, [data])
 
   useEffect(() => {
     setAllData(allData.map(i => ({ ...i, selected: allSelected })))
@@ -105,11 +87,8 @@ function ListScroller({ allSelected, onAllSelectedChange, onSelect, onUnselect, 
       }}
     >
       <InfiniteScroll
-        hasMore={page < data?.totalPages}
-        next={() => {
-          console.log("next page")
-          setPage(page + 1)
-        }}
+        hasMore={!!hasNextPage}
+        next={() => fetchNextPage()}
         loader={<div className="text-center text-sm text-gray-500">Loading...</div>}
         dataLength={allData.length}
         endMessage={<div className="text-center text-sm text-gray-500">No more items</div>}

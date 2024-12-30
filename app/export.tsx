@@ -8,42 +8,44 @@ export type RichedItem = ListItem & {
 
 export function Export() {
   const [mode, setMode] = useState<"inclusive" | "exclusive">("inclusive")
-  const [items, setItems] = useState<RichedItem[]>([])
+  const [selectedItems, setSelectedItems] = useState<RichedItem[]>([])
+  const [unselectedItems, setUnselectedItems] = useState<RichedItem[]>([])
 
   return (
     <div className="flex gap-4 p-4">
       <LeftList
-        selectedItems={mode === "inclusive" ? items : []}
-        unselectedItems={mode === "exclusive" ? items : []}
+        selectedItems={selectedItems}
+        unselectedItems={unselectedItems}
         onAllSelectedChange={(all) => {
           setMode(all ? "exclusive" : "inclusive")
-          setItems([])
+          setSelectedItems([])
+          setUnselectedItems([])
         }}
         onSelect={(item) => {
           if (mode === "inclusive") {
-            setItems([...items, item])
+            setSelectedItems([...selectedItems, item])
           } else {
-            setItems(items.filter(i => i.id !== item.id))
+            setUnselectedItems(unselectedItems.filter(i => i.id !== item.id))
           }
         }}
         onUnselect={(item) => {
           if (mode === "inclusive") {
-            setItems(items.filter(i => i.id !== item.id))
+            setSelectedItems(selectedItems.filter(i => i.id !== item.id))
           } else {
-            setItems([...items, item])
+            setUnselectedItems([...unselectedItems, item])
           }
         }}
       />
 
       <RightList
         infiniteScroll={mode === "exclusive"}
-        unselectedItems={mode === "exclusive" ? items : []}
-        items={items}
+        unselectedItems={unselectedItems}
+        items={selectedItems}
         onRemove={(item) => {
           if (mode === "inclusive") {
-            setItems(items.filter(i => i.id !== item.id))
+            setSelectedItems(selectedItems.filter(i => i.id !== item.id))
           } else {
-            setItems([...items, item])
+            setUnselectedItems([...unselectedItems, item])
           }
         }}
       />

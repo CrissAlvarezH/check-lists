@@ -1,10 +1,10 @@
 "use client"
 import { ListItem } from "@/app/left-list"
 import { useState, useEffect } from "react"
-import { useQuery } from "react-query"
 import { HamburgerIcon } from "./icons"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { RichedItem } from "./export"
+import { useGetColumns } from "./hooks"
 
 type Props = {
   infiniteScroll: boolean
@@ -21,19 +21,8 @@ export default function RightList({ infiniteScroll, items, unselectedItems, onRe
         {infiniteScroll ? (
           <ListInfiniteScroll items={items} unselectedItems={unselectedItems} onRemove={onRemove} />
         ) : (
-
           items.map((item) => (
-            <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-              <div className="flex items-center gap-2">
-                <HamburgerIcon />
-                <span>{item.label}</span>
-              </div>
-              <button
-                className="text-gray-400 hover:text-gray-600"
-                onClick={() => onRemove(item)}>
-                ×
-              </button>
-            </div>
+            <SelectedColumnItem key={item.id} item={item} onRemove={onRemove} />
           )))}
       </div>
     </div>
@@ -43,24 +32,14 @@ export default function RightList({ infiniteScroll, items, unselectedItems, onRe
 function ListInfiniteScroll({ items, unselectedItems, onRemove }: { items: RichedItem[], unselectedItems: RichedItem[], onRemove: (item: RichedItem) => void }) {
   const [allData, setAllData] = useState<RichedItem[]>([])
   const [filteredData, setFilteredData] = useState<RichedItem[]>([])
-  const [page, setPage] = useState(1)
 
-  const fetchProjects = (page = 0) => fetch('/api/items?page=' + page, { method: 'GET' }).then((res) => res.json())
-
-  const {
-    error,
-    data,
-    isPreviousData,
-  } = useQuery(['items', page], () => fetchProjects(page), { keepPreviousData: true })
+  const { data, error, hasNextPage, fetchNextPage } = useGetColumns()
 
   useEffect(() => {
     if (data) {
-      console.log("last page", page, "data.page", data.page)
-      if (!isPreviousData) {
-        setAllData([...allData, ...data.items])
-      }
+      setAllData(data.pages.flatMap(page => page.items).map((i: ListItem) => ({ ...i, selected: false })))
     }
-  }, [data, isPreviousData])
+  }, [data])
 
   useEffect(() => {
     if (unselectedItems.length > 0) {
@@ -69,6 +48,15 @@ function ListInfiniteScroll({ items, unselectedItems, onRemove }: { items: Riche
       setFilteredData(allData)
     }
   }, [unselectedItems, allData])
+
+  useEffect(() => {
+    // if the container is not scrollable, fetch more data to make it scrollable
+    // and avoid stop working the infinite scroll
+    const container = document.getElementById('scrollableRightList');
+    if (container && container.scrollHeight <= container.clientHeight) {
+      if (hasNextPage) fetchNextPage()
+    }
+  }, [filteredData, hasNextPage, fetchNextPage]);
 
   if (error) return <div>Error</div>
   if (!data) return <div>Loading...</div>
@@ -81,30 +69,33 @@ function ListInfiniteScroll({ items, unselectedItems, onRemove }: { items: Riche
       }}
     >
       <InfiniteScroll
-        hasMore={page < data?.totalPages}
-        next={() => {
-          console.log("next page")
-          setPage(page + 1)
-        }}
+        hasMore={!!hasNextPage}
+        next={() => fetchNextPage()}
         loader={<div className="text-center text-sm text-gray-500">Loading...</div>}
         dataLength={filteredData.length}
         endMessage={<div className="text-center text-sm text-gray-500">No more items</div>}
         scrollableTarget="scrollableRightList"
       >
         {filteredData.map((item: RichedItem) => (
-          <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-            <div className="flex items-center gap-2">
-              <HamburgerIcon />
-              <span>{item.label}</span>
-            </div>
-            <button
-              className="text-gray-400 hover:text-gray-600"
-              onClick={() => onRemove(item)}>
-              ×
-            </button>
-          </div>
+          <SelectedColumnItem key={item.id} item={item} onRemove={onRemove} />
         ))}
       </InfiniteScroll>
     </div >
+  )
+}
+
+function SelectedColumnItem({ item, onRemove }: { item: RichedItem, onRemove: (item: RichedItem) => void }) {
+  return (
+    <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+      <div className="flex items-center gap-2">
+        <HamburgerIcon />
+        <span>{item.label}</span>
+      </div>
+      <button
+        className="text-gray-400 hover:text-gray-600"
+        onClick={() => onRemove(item)}>
+        ×
+      </button>
+    </div>
   )
 }

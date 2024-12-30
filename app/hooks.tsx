@@ -1,54 +1,38 @@
+import { useInfiniteQuery } from "react-query"
+import { ListItem } from "./left-list"
 
-
-import { useState, useEffect } from 'react'
-
-interface UseApiRequestProps {
-  url: string
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  body?: any
-  dependencies?: any[]
+export type Data = {
+  items: ListItem[]
+  page: number
+  totalPages: number
 }
 
-interface ApiResponse<T> {
-  data: T | null
-  error: Error | null
-  loading: boolean
-}
+export function useGetColumns() {
+  const fetchColumns = (page: number) => fetch('/api/items?page=' + page, { method: 'GET' }).then((res) => res.json())
 
-export function useApiRequest<T>({ url, method = 'GET', body, dependencies = [] }: UseApiRequestProps): ApiResponse<T> {
-  const [data, setData] = useState<T | null>(null)
-  const [error, setError] = useState<Error | null>(null)
-  const [loading, setLoading] = useState<boolean>(false)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true)
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          ...(body && { body: JSON.stringify(body) }),
-        })
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
+  const {
+    error,
+    data,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery<Data>(
+    ['columns'],
+    ({ pageParam = 1 }) => fetchColumns(pageParam),
+    {
+      getNextPageParam: (lastPage: Data) => {
+        if (lastPage.page === lastPage.totalPages) {
+          return undefined
         }
-  
-        const result = await response.json()
-        setData(result)
-        setError(null)
-      } catch (err) {
-        setError(err instanceof Error ? err : new Error('An error occurred'))
-        setData(null)
-      } finally {
-        setLoading(false)
-      }
+        return lastPage.page + 1
+      },
+      getPreviousPageParam: (firstPage: Data) => {
+        if (firstPage.page <= 1) {
+          return undefined
+        }
+        return firstPage.page - 1
+      },
     }
+  )
 
-    fetchData()
-  }, [...dependencies])
-
-  return { data, error, loading }
+  return { error, data, hasNextPage, fetchNextPage }
 }
