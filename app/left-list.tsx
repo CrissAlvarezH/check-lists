@@ -1,22 +1,15 @@
 "use client"
 import InfiniteScroll from "react-infinite-scroll-component"
-import { useQuery } from "react-query"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useContext } from "react"
 import { Search } from "./search"
-import { RichedItem } from "./export"
+import { ExportContext, RichedItem } from "./export"
 import { useGetColumns } from "./hooks"
 
-type Props = {
-  onAllSelectedChange: (all: boolean) => void
-  selectedItems: RichedItem[]
-  unselectedItems: RichedItem[]
-  onSelect: (item: RichedItem) => void
-  onUnselect: (item: RichedItem) => void
-}
 
-export default function LeftList({ onAllSelectedChange, selectedItems, unselectedItems, onSelect, onUnselect }: Props) {
+export default function LeftList() {
   const [search, setSearch] = useState<string>("")
-  const [allSelected, setAllSelected] = useState<boolean>(false)
+
+  const { mode, handleAllSelectedChange} = useContext(ExportContext)
 
   return (
     <div className="flex-1 border rounded-lg p-4">
@@ -26,24 +19,16 @@ export default function LeftList({ onAllSelectedChange, selectedItems, unselecte
         <label className="flex items-center">
           <input
             type="checkbox"
-            checked={allSelected}
+            checked={mode === "exclusive"}
             onChange={(t) => {
-              setAllSelected(t.target.checked)
-              onAllSelectedChange(t.target.checked)
+              handleAllSelectedChange(t.target.checked)
             }}
             className="mr-2"
           />
           <span>Seleccionar todos</span>
         </label>
 
-        <ListScroller
-          allSelected={allSelected}
-          onAllSelectedChange={onAllSelectedChange}
-          onSelect={onSelect}
-          onUnselect={onUnselect}
-          selectedItems={selectedItems}
-          unselectedItems={unselectedItems}
-        />
+        <ListScroller />
 
       </div>
     </div>
@@ -61,9 +46,11 @@ export type ListItem = {
 }
 
 
-function ListScroller({ allSelected, onSelect, onUnselect, selectedItems, unselectedItems }: ListProps & Props) {
+function ListScroller() {
   const [allData, setAllData] = useState<RichedItem[]>([])
   const { error, data, hasNextPage, fetchNextPage } = useGetColumns()
+
+  const { mode, unselectedItems, selectedItems, handleSelect, handleUnselect } = useContext(ExportContext)
 
   useEffect(() => {
     // each time a new page is added, it transform the items and add it to allData
@@ -73,8 +60,8 @@ function ListScroller({ allSelected, onSelect, onUnselect, selectedItems, unsele
   }, [data])
 
   useEffect(() => {
-    setAllData(allData.map(i => ({ ...i, selected: allSelected })))
-  }, [allSelected])
+    setAllData(allData.map(i => ({ ...i, selected: mode === "exclusive" })))
+  }, [mode])
 
   if (error) return <div>Error</div>
   if (!data) return <div>Loading...</div>
@@ -96,7 +83,7 @@ function ListScroller({ allSelected, onSelect, onUnselect, selectedItems, unsele
       >
         {allData.map((item: RichedItem) => {
           let isSelected = undefined
-          if (allSelected) {
+          if (mode === "exclusive") {
             isSelected = !unselectedItems.some(i => i.id === item.id)
           } else {
             isSelected = selectedItems.some(i => i.id === item.id)
@@ -108,9 +95,9 @@ function ListScroller({ allSelected, onSelect, onUnselect, selectedItems, unsele
                 checked={isSelected}
                 onChange={() => {
                   if (isSelected) {
-                    onUnselect(item)
+                    handleUnselect(item)
                   } else {
-                    onSelect(item)
+                    handleSelect(item)
                   }
                 }}
                 className="mr-2" />

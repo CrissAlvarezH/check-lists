@@ -1,35 +1,31 @@
 "use client"
 import { ListItem } from "@/app/left-list"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useContext } from "react"
 import { HamburgerIcon } from "./icons"
 import InfiniteScroll from "react-infinite-scroll-component"
-import { RichedItem } from "./export"
+import { ExportContext, RichedItem } from "./export"
 import { useGetColumns } from "./hooks"
 
-type Props = {
-  infiniteScroll: boolean
-  unselectedItems: RichedItem[]
-  items: RichedItem[]
-  onRemove: (item: RichedItem) => void
-}
 
-export default function RightList({ infiniteScroll, items, unselectedItems, onRemove }: Props) {
+export default function RightList() {
+  const { mode, selectedItems, unselectedItems, handleUnselect } = useContext(ExportContext)
+
   return (
     <div className="flex-1 border rounded-lg p-4">
       <div className="space-y-2">
 
-        {infiniteScroll ? (
-          <ListInfiniteScroll items={items} unselectedItems={unselectedItems} onRemove={onRemove} />
+        {mode === "exclusive" ? (
+          <ListInfiniteScroll unselectedItems={unselectedItems} onRemove={handleUnselect} />
         ) : (
-          items.map((item) => (
-            <SelectedColumnItem key={item.id} item={item} onRemove={onRemove} />
+          selectedItems.map((item) => (
+            <SelectedColumnItem key={item.id} item={item} onRemove={handleUnselect} />
           )))}
       </div>
     </div>
   )
 }
 
-function ListInfiniteScroll({ items, unselectedItems, onRemove }: { items: RichedItem[], unselectedItems: RichedItem[], onRemove: (item: RichedItem) => void }) {
+function ListInfiniteScroll({ unselectedItems, onRemove }: { unselectedItems: RichedItem[], onRemove: (item: RichedItem) => void }) {
   const [allData, setAllData] = useState<RichedItem[]>([])
   const [filteredData, setFilteredData] = useState<RichedItem[]>([])
 
