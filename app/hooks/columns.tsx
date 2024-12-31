@@ -20,6 +20,7 @@ export function useGetColumns() {
   const {
     error,
     data,
+    isLoading,
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery<Data>(
@@ -41,5 +42,5 @@ export function useGetColumns() {
     }
   )
 
-  return { error, data, hasNextPage, fetchNextPage }
+  return { error, data, isLoading, hasNextPage, fetchNextPage }
 }
