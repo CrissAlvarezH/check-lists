@@ -1,7 +1,8 @@
-import LeftList from "@/app/left-list"
+"use client"
 import { useState, createContext } from "react"
 import RightList from "./right-list"
-import { ListItem } from "./hooks"
+import LeftList from "./left-list"
+import { ListItem } from "../../hooks/columns"
 
 export type RichedItem = ListItem & {
   selected: boolean

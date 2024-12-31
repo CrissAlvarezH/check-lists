@@ -1,9 +1,9 @@
 "use client"
 import { useState, useEffect, useContext } from "react"
-import { HamburgerIcon } from "./icons"
+import { HamburgerIcon } from "../../icons"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { ExportContext, RichedItem } from "./export"
-import { useGetColumns, ListItem } from "./hooks"
+import { useGetColumns, ListItem } from "../../hooks/columns"
 
 
 export default function RightList() {
