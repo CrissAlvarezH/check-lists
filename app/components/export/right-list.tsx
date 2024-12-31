@@ -13,10 +13,7 @@ export default function RightList() {
       {mode === "exclusive" ? (
         <div
           id="scrollableRightList"
-          style={{
-            height: "400px",
-            overflow: "auto",
-          }}
+          className="h-[400px] overflow-auto"
         >
           <DataScroller
             id="scrollableRightList"
@@ -27,7 +24,7 @@ export default function RightList() {
           />
         </div >
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2 h-[400px] overflow-auto">
           {include.map((item) => (
             <SelectedColumnItem key={item.id} item={item} onRemove={handleUnselect} />
           ))}

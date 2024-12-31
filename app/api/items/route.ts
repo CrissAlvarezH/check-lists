@@ -15,7 +15,6 @@ export async function GET(request: Request) {
 
   // Filter items based on search term
   const filteredItems = items.filter(item => 
-    item.text.toLowerCase().includes(search.toLowerCase()) ||
     item.label.toLowerCase().includes(search.toLowerCase())
   )
 

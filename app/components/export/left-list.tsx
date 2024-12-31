@@ -1,13 +1,12 @@
 "use client"
 import { useState, useContext, useEffect } from "react"
-import { Search } from "../../search"
-import { ExportContext } from "../../contexts/export"
+import { ExportContext, RichedItem } from "../../contexts/export"
 import { DataScroller } from "./data-scroller"
+import { Search } from "./search"
 
 
 export default function LeftList() {
   const { mode, exclude, handleAllSelectedChange } = useContext(ExportContext)
-
   const [search, setSearch] = useState<string>("")
 
   // this state is to show de all-selector unchecked when the mode is 'exclusive'
@@ -40,25 +39,29 @@ export default function LeftList() {
 
         <div
           id="scrollableLeftList"
-          style={{
-            height: "400px",
-            overflow: "auto",
-          }}
+          className="h-[400px] overflow-auto"
         >
           <DataScroller
             id="scrollableLeftList"
+            search={search}
             renderItem={(item, onSelectChange) => (
-              <label key={item.id} className="flex py-2 items-center">
-                <input type="checkbox"
-                  checked={item.selected}
-                  onChange={onSelectChange}
-                  className="mr-2" />
-                <span>{item.label}</span>
-              </label>
+              <CheckItem key={item.id} item={item} onSelectChange={onSelectChange} />
             )}
           />
         </div >
       </div>
     </div>
+  )
+}
+
+export function CheckItem({ item, onSelectChange }: { item: RichedItem, onSelectChange: () => void }) {
+  return (
+    <label key={item.id} className="flex py-2 items-center">
+      <input type="checkbox"
+        checked={item.selected}
+        onChange={onSelectChange}
+        className="mr-2" />
+      <span>{item.label}</span>
+    </label>
   )
 }

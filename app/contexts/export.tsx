@@ -1,6 +1,6 @@
 "use client"
 import { createContext, useState } from "react"
-import { ListItem, useGetColumns, Data } from "../hooks/columns"
+import { ListItem } from "../hooks/columns"
 
 
 export type RichedItem = ListItem & {
@@ -9,11 +9,6 @@ export type RichedItem = ListItem & {
 
 export const ExportContext = createContext<{
   mode: "inclusive" | "exclusive"
-  columns: RichedItem[]
-  isLoading: boolean
-  error: unknown
-  hasNextPage: boolean
-  fetchNextPage: () => void
   include: RichedItem[]
   exclude: RichedItem[]
   handleAllSelectedChange: (all: boolean) => void
@@ -21,11 +16,6 @@ export const ExportContext = createContext<{
   handleUnselect: (item: RichedItem) => void
 }>({
   mode: "inclusive",
-  columns: [],
-  isLoading: false,
-  error: null,
-  hasNextPage: false,
-  fetchNextPage: () => { },
   include: [],
   exclude: [],
   handleAllSelectedChange: () => { },
@@ -38,7 +28,6 @@ export function ExportProvider({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<"inclusive" | "exclusive">("inclusive")
   const [include, setInclude] = useState<RichedItem[]>([])
   const [exclude, setExclude] = useState<RichedItem[]>([])
-  const { data, isLoading, error, hasNextPage, fetchNextPage } = useGetColumns()
 
   const handleAllSelectedChange = (all: boolean) => {
     setMode(all ? "exclusive" : "inclusive")
@@ -62,16 +51,9 @@ export function ExportProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const allData: RichedItem[] = data?.pages.flatMap(page => page.items).map(item => ({ ...item, selected: false })) ?? []
-
   return (
     <ExportContext.Provider value={{
       mode,
-      columns: allData,
-      isLoading,
-      error,
-      hasNextPage: hasNextPage ?? false,
-      fetchNextPage,
       handleAllSelectedChange,
       handleSelect,
       handleUnselect,

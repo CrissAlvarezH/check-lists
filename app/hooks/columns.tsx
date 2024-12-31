@@ -1,6 +1,4 @@
-
 import { useInfiniteQuery } from "react-query"
-
 
 export type ListItem = {
   id: string
@@ -14,17 +12,29 @@ export type Data = {
   totalPages: number
 }
 
-export function useGetColumns() {
-  const fetchColumns = (page: number) => fetch('/api/items?page=' + page, { method: 'GET' }).then((res) => res.json())
+export type UseGetColumnsProps = {
+  search?: string
+}
+
+export function useGetColumns(filters?: UseGetColumnsProps) {
+
+  const fetchColumns = (page: number) => {
+    let url = '/api/items?page=' + page
+    if (filters?.search) {
+      url += '&search=' + filters.search
+    }
+    return fetch(url, { method: 'GET' }).then((res) => res.json())
+  }
 
   const {
+    refetch,
     error,
     data,
     isLoading,
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery<Data>(
-    ['columns'],
+    ['columns', filters?.search],
     ({ pageParam = 1 }) => fetchColumns(pageParam),
     {
       getNextPageParam: (lastPage: Data) => {
@@ -42,5 +52,5 @@ export function useGetColumns() {
     }
   )
 
-  return { error, data, isLoading, hasNextPage, fetchNextPage }
+  return { error, data, isLoading, hasNextPage, fetchNextPage, refetch }
 }
