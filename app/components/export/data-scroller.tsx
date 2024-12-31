@@ -1,6 +1,6 @@
 import { ExportContext, RichedItem } from "@/app/contexts/export"
 import InfiniteScroll from "react-infinite-scroll-component"
-import { useContext, useEffect } from "react"
+import { useContext, useEffect, useState } from "react"
 
 
 export type DataScrollerProps = {
@@ -13,10 +13,28 @@ export type DataScrollerProps = {
 }
 
 export function DataScroller({ id, filter, renderItem }: DataScrollerProps) {
-  const { 
-    columns, error, isLoading, hasNextPage, mode, exclude, include, 
+  const [items, setItems] = useState<RichedItem[]>([])
+
+  const {
+    columns, error, isLoading, hasNextPage, mode, exclude, include,
     handleSelect, handleUnselect, fetchNextPage
   } = useContext(ExportContext)
+
+  useEffect(() => {
+    // filter using the function that is provided by params
+    let items = filter ? columns.filter(filter) : columns
+    // add selected property to the items
+    items = items.map(item => {
+      let selected = false
+      if (mode === "exclusive") {
+        selected = !exclude.some(i => i.id === item.id)
+      } else {
+        selected = include.some(i => i.id === item.id)
+      }
+      return { ...item, selected }
+    })
+    setItems(items)
+  }, [columns, mode, exclude, include, filter])
 
   useEffect(() => {
     // if the container is not scrollable, fetch more data to make it scrollable
@@ -25,24 +43,11 @@ export function DataScroller({ id, filter, renderItem }: DataScrollerProps) {
     if (container && container.scrollHeight <= container.clientHeight) {
       if (hasNextPage) fetchNextPage()
     }
-  }, [columns, hasNextPage, fetchNextPage]);
+  }, [items, hasNextPage, fetchNextPage]);
+
 
   if (isLoading) return <div className="text-center text-sm text-gray-500">Loading...</div>
   if (error) return <div className="text-center text-sm text-gray-500">Error</div>
-
-  // filter using the function that is provided by params
-  let items = filter ? columns.filter(filter) : columns
-  // add selected property to the items
-  items = items.map(item => {
-    let selected = false
-    if (mode === "exclusive") {
-      selected = !exclude.some(i => i.id === item.id)
-    } else {
-      selected = include.some(i => i.id === item.id)
-    }
-    return { ...item, selected }
-  })
-
   return (
     <InfiniteScroll
       hasMore={!!hasNextPage}

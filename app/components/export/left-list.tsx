@@ -1,14 +1,25 @@
 "use client"
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { Search } from "../../search"
 import { ExportContext } from "../../contexts/export"
 import { DataScroller } from "./data-scroller"
 
 
 export default function LeftList() {
+  const { mode, exclude, handleAllSelectedChange } = useContext(ExportContext)
+
   const [search, setSearch] = useState<string>("")
 
-  const { mode, handleAllSelectedChange } = useContext(ExportContext)
+  // this state is to show de all-selector unchecked when the mode is 'exclusive'
+  // but the user has unselected some items, so the all-selector should be unchecked
+  // but he mode should continue being 'exclusive'
+  const [uiAllSelected, setUiAllSelected] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (mode === "exclusive") {
+      setUiAllSelected(exclude.length === 0)
+    }
+  }, [mode, exclude])
 
   return (
     <div className="flex-1 border rounded-lg p-4">
@@ -18,7 +29,7 @@ export default function LeftList() {
         <label className="flex items-center">
           <input
             type="checkbox"
-            checked={mode === "exclusive"}
+            checked={uiAllSelected && mode === "exclusive"}
             onChange={(t) => {
               handleAllSelectedChange(t.target.checked)
             }}
