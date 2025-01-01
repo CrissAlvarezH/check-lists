@@ -25,4 +25,8 @@ En este caso el infinite scroll de la derecha no esta habilitado
 
 - `exclusive`: (Seleccionar todo esta seleccionado): deselecciona uno por uno y se guardan estos items para
 deseleccionar en la lista de la derecha.
-En este caso se activa el infinite scroll en la derecha 
+En este caso se activa el infinite scroll en la derecha
+
+## UI
+
+<img src="https://github.com/CrissAlvarezH/check-lists/blob/main/docs/images/preview.png" />
