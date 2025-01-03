@@ -24,6 +24,7 @@ export async function GET(request: Request) {
   const paginatedItems = filteredItems.slice(startIndex, endIndex)
 
   return NextResponse.json({
+    pageSize: limit,
     items: paginatedItems,
     total: filteredItems.length,
     page,

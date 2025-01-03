@@ -16,6 +16,8 @@ export type UseGetColumnsProps = {
   search?: string
 }
 
+export const COLUMNS_PAGE_SIZE = 15
+
 export function useGetColumns(filters?: UseGetColumnsProps) {
 
   const fetchColumns = (page: number) => {
@@ -34,7 +36,7 @@ export function useGetColumns(filters?: UseGetColumnsProps) {
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery<Data>(
-    ['columns', filters?.search],
+    ['columns', filters?.search || ""],
     ({ pageParam = 1 }) => fetchColumns(pageParam),
     {
       getNextPageParam: (lastPage: Data) => {

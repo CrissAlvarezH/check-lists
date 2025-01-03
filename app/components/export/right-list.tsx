@@ -1,12 +1,13 @@
 "use client"
-import { useContext } from "react"
+import { useContext, useEffect, useState } from "react"
 import { HamburgerIcon } from "../../icons"
 import { ExportContext, RichedItem } from "../../contexts/export"
 import { DataScroller } from "./data-scroller"
+import { Reorder } from "motion/react"
 
 
 export default function RightList() {
-  const { mode, include, exclude, handleUnselect } = useContext(ExportContext)
+  const { mode, include, handleUnselect } = useContext(ExportContext)
 
   return (
     <div className="flex-1 border rounded-lg p-4">
@@ -17,19 +18,55 @@ export default function RightList() {
         >
           <DataScroller
             id="scrollableRightList"
-            filter={item => !exclude.some(ui => ui.id === item.id)}
+            dragAndDrop
+            onlySelected
             renderItem={(item) => (
               <SelectedColumnItem key={item.id} item={item} onRemove={handleUnselect} />
             )}
           />
         </div >
       ) : (
-        <div className="space-y-2 h-[400px] overflow-auto">
-          {include.map((item) => (
+        <DragAndDropList
+          items={include}
+          renderItem={(item) => (
             <SelectedColumnItem key={item.id} item={item} onRemove={handleUnselect} />
-          ))}
-        </div>
+          )}
+        />
       )}
+    </div>
+  )
+}
+
+type DragAndDropListProps = {
+  items: RichedItem[]
+  renderItem: (item: RichedItem) => React.ReactNode
+}
+
+function DragAndDropList({ items, renderItem }: DragAndDropListProps) {
+  const [ordered, setOrdered] = useState(items)
+
+  useEffect(() => {
+    if (ordered.length == items.length) return
+
+    // add new ones
+    let newOrdered = ordered.concat(items.filter(item => !ordered.some(i => i.id === item.id)))
+    // remove removed ones
+    newOrdered = newOrdered.filter(item => items.some(i => i.id === item.id))
+
+    setOrdered(newOrdered)
+  }, [items])
+
+  return (
+    <div className="space-y-2 h-[400px] overflow-auto">
+      <Reorder.Group axis="y" values={ordered} onReorder={setOrdered}>
+        {ordered.map((item) => {
+          return (
+            <Reorder.Item key={item.id} value={item}>
+              {renderItem(item)}
+            </Reorder.Item>
+          )
+        })}
+      </Reorder.Group>
     </div>
   )
 }
